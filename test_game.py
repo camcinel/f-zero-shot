@@ -1,5 +1,8 @@
 import retro
 import os
+import matplotlib.pyplot as plt
+from PIL import Image as im
+
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -9,13 +12,15 @@ def main():
     print(retro.data.get_file_path('FZero-Snes', 'rom.sha', inttype=retro.data.Integrations.CUSTOM))
     env = retro.make('FZero-Snes', state='FZero.KnightCup.Easy.state', inttype=retro.data.Integrations.CUSTOM)
     observation = env.reset()
+    current_reward = 0
     for i in range(10000):
         observation, reward, done, info = env.step(env.action_space.sample())
         env.render()
+        current_reward += reward
         if done:
+            print(f'Total reward earned:\t{current_reward}')
+            current_reward = 0
             observation = env.reset()
-        if i % 1000 == 0:
-            print(info)
     env.close()
 
 

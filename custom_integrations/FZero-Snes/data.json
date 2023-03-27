@@ -4,8 +4,25 @@
       "address": 8257538,
       "type": "<u2"
     },
-    "fun": {
+    "health": {
       "address": 8261155,
+      "type": "|u1"
+    },
+    "rank": {
+      "address": 8261064,
+      "type": "|u1"
+    },
+    "lives": {
+      "address": 8257625,
+      "type": "|u1"
+    },
+    "direction": {
+      "address": 8260353,
+      "type": "|u1",
+      "_comment": "forward == 4, reverse == 5"
+    },
+    "in_control": {
+      "address": 8257616,
       "type": "|u1"
     }
   }

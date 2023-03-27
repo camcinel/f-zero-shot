@@ -1,0 +1,19 @@
+{
+  "done": {
+    "condition": "any",
+    "variables": {
+      "lives": {
+        "op": "zero"
+      },
+      "in_control": {
+        "op": "zero"
+      }
+    }
+  },
+  "reward": {
+    "script": "lua:total_reward"
+  },
+  "scripts": [
+    "script.lua"
+  ]
+}
