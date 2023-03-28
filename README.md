@@ -1,8 +1,9 @@
 # F-Zero-Shot
 
-TODO: Get memory address
+## File Structure
 
-- Speed (done)
-- Health (done)
-- Rank
-- Finish condition (death / rank out / finish race)
+- `agent.py`: constructor for agent
+- `logger.py`: helper logger object
+- `wrappers.py`: `gym` environment wrappers for data conversion
+- `linear_model.py`: simple multi-layer perceptron model
+- `main.py`: main driver script
