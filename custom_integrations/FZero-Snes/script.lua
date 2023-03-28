@@ -22,5 +22,5 @@ function health_change()
 end
 
 function total_reward()
-    return speed_with_direction() - 100.0 * health_change()
+    return speed_with_direction() - 10.0 * health_change()
 end

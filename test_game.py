@@ -1,9 +1,6 @@
 import retro
 import os
-from wrappers import Discretizer
-import matplotlib.pyplot as plt
-from PIL import Image as im
-
+from utils.wrappers import Discretizer
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 

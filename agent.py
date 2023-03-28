@@ -17,9 +17,9 @@ class Racer:
         self.net = net(self.state_dim, self.action_dim).float()
         self.net = self.net.to(self.device)
 
-        self.exploration_rate = 1
-        self.exploration_rate_decay = 0.99999975
-        self.exploration_rate_min = 0.1
+        self.exploration_rate = 1.0
+        self.exploration_rate_decay = 0.999975
+        self.exploration_rate_min = 0.001
         self.gamma = 0.9
         self.curr_step = 0
 
@@ -31,7 +31,7 @@ class Racer:
         self.memory = deque(maxlen=100000)
         self.batch_size = 32
 
-        self.optimizer = optim.Adam(self.net.parameters(), lr=0.00025)
+        self.optimizer = optim.Adam(self.net.parameters(), lr=0.0025)
         self.loss_fn = nn.SmoothL1Loss()
 
     def act(self, state):

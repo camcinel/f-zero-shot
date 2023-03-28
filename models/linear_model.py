@@ -1,10 +1,13 @@
 import torch.nn as nn
 from copy import deepcopy
+import numpy as np
+from numpy import ndarray
 
 
 class LinearModel(nn.Module):
-    def __init__(self, n_observations, n_actions):
+    def __init__(self, state_shape, n_actions):
         super().__init__()
+        n_observations = np.prod(state_shape)
         self.online = nn.Sequential(
             nn.Linear(n_observations, 256),
             nn.ReLU(),
@@ -27,3 +30,6 @@ class LinearModel(nn.Module):
             return self.target(x)
         else:
             raise Exception(f'model must be in [target, online], got {model}')
+
+    def name(self):
+        return 'LinearModel'

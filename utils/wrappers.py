@@ -88,4 +88,4 @@ class Resizer(gym.ObservationWrapper):
             [T.Resize(self.shape, antialias=True)]
         )
         observation = transforms(observation)
-        return observation.squeeze()
+        return observation.squeeze(0)
