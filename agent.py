@@ -44,7 +44,7 @@ class Racer:
             action_values = self.net(state, model='online')
             action_idx = torch.argmax(action_values, dim=1).item()
 
-        self.exploration_rate += self.exploration_rate_decay
+        self.exploration_rate *= self.exploration_rate_decay
         self.exploration_rate = max(self.exploration_rate_min, self.exploration_rate)
 
         self.curr_step += 1
