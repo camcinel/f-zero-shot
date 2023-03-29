@@ -24,6 +24,18 @@
     "in_control": {
       "address": 8257616,
       "type": "|u1"
+    },
+    "lap_number": {
+      "address": 8260928,
+      "type": "|u1"
+    },
+    "curr_checkpoint": {
+      "address": 8260864,
+      "type": "|u1"
+    },
+    "lap_size": {
+      "address": 8257709,
+      "type": "|u1"
     }
   }
 }

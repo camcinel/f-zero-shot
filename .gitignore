@@ -130,3 +130,4 @@ dmypy.json
 
 # project specifics
 checkpoints/
+trained_models/

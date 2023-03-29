@@ -1,7 +1,6 @@
 import retro
 import os
-from utils.wrappers import Discretizer, Resizer, GrayScaleObservation, ColabHelperStep, ColabHelperObservation
-from gym.wrappers import FrameStack
+from utils.wrappers import wrap_environment
 from pathlib import Path
 from agent import Racer
 from utils.logger import MetricLogger
@@ -35,13 +34,7 @@ def main(n_episodes=20, model_name='LinearModel', render=False, colab=False):
 
     retro.data.Integrations.add_custom_path(os.path.join(script_dir, 'custom_integrations'))
     env = retro.make('FZero-Snes', state='FZero.KnightCup.Easy.state', inttype=retro.data.Integrations.CUSTOM)
-    if colab:
-        env = ColabHelperStep(env)
-        env = ColabHelperObservation(env)
-    env = Discretizer(env)
-    env = GrayScaleObservation(env)
-    env = Resizer(env, shape=64)
-    env = FrameStack(env, num_stack=4)
+    env = wrap_environment(env, shape=64, n_frames=4, colab=colab)
     state = env.reset()
 
     racer = Racer(state_dim=state.shape, action_dim=env.action_space.n, save_dir=save_dir, net=model)

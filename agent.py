@@ -26,9 +26,9 @@ class Racer:
         self.burnin = 1e4
         self.learn_every = 3
         self.sync_every = 1e4
-        self.save_every = 5e5
+        self.save_every = 5e4
 
-        self.memory = deque(maxlen=100000)
+        self.memory = deque(maxlen=20000)
         self.batch_size = 32
 
         self.optimizer = optim.Adam(self.net.parameters(), lr=0.0025)

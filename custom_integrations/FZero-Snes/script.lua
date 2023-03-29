@@ -1,12 +1,38 @@
+function get_checkpoint()
+    local checkpoint = data.curr_checkpoint
+    local lap = data.lap_number
+    local lap_size = data.lap_size
+    if lap == 255 then
+        return 0
+    else
+        return checkpoint + lap * lap_size
+    end
+end
+
+data.prev_checkpoint = get_checkpoint()
+function checkpoint_reward()
+    local new_checkpoint = get_checkpoint()
+
+    local reward = (new_checkpoint - data.prev_checkpoint) * 10
+    data.prev_checkpoint = new_checkpoint
+    return reward
+end
+
+function get_direction()
+    if data.direction == 4 then
+        return 1
+    elseif data.direction == 5 then
+        return -1
+    else
+        return 0
+    end
+end
+
 function speed_with_direction()
     if data.speed > 10000 then
         return 0
-    elseif data.direction == 4 then
-        return data.speed / 1000.0
-    elseif data.direction == 5 then
-        return -1.0 * data.speed / 1000.0
     else
-        return 0
+        return get_direction() * (data.speed / 50000)
     end
 end
 
@@ -22,5 +48,5 @@ function health_change()
 end
 
 function total_reward()
-    return speed_with_direction() - 10.0 * health_change()
+    return speed_with_direction() + checkpoint_reward() - 10.0 * health_change()
 end

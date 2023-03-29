@@ -1,5 +1,6 @@
 import gym
 from gym.spaces import Box
+from gym.wrappers import FrameStack
 import numpy as np
 from torchvision import transforms as T
 import torch
@@ -111,3 +112,15 @@ class ColabHelperStep(gym.Wrapper):
     def step(self, action):
         obs, reward, done, trunc, info = self.env.step(action)
         return obs, reward, done, info
+
+
+def wrap_environment(env, shape, n_frames, colab=False):
+    if colab:
+        env = ColabHelperStep(env)
+        env = ColabHelperObservation(env)
+    env = Discretizer(env)
+    env = GrayScaleObservation(env)
+    env = Resizer(env, shape=shape)
+    env = FrameStack(env, num_stack=n_frames)
+    return env
+
