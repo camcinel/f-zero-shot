@@ -48,5 +48,5 @@ function health_change()
 end
 
 function total_reward()
-    return speed_with_direction() + checkpoint_reward() - 10.0 * health_change()
+    return speed_with_direction() + checkpoint_reward() - health_change()
 end
