@@ -1,6 +1,6 @@
 import retro
 import os
-from utils.wrappers import Discretizer, Resizer, GrayScaleObservation
+from utils.wrappers import Discretizer, Resizer, GrayScaleObservation, ColabHelperStep, ColabHelperObservation
 from gym.wrappers import FrameStack
 from pathlib import Path
 from agent import Racer
@@ -34,8 +34,11 @@ def main(n_episodes=20, model_name='LinearModel', render=False, colab=False):
     save_dir.mkdir(parents=True, exist_ok=True)
 
     retro.data.Integrations.add_custom_path(os.path.join(script_dir, 'custom_integrations'))
-    env = Discretizer(
-        retro.make('FZero-Snes', state='FZero.KnightCup.Easy.state', inttype=retro.data.Integrations.CUSTOM))
+    env = retro.make('FZero-Snes', state='FZero.KnightCup.Easy.state', inttype=retro.data.Integrations.CUSTOM)
+    if colab:
+        env = ColabHelperStep(env)
+        env = ColabHelperObservation(env)
+    env = Discretizer(env)
     env = GrayScaleObservation(env)
     env = Resizer(env, shape=64)
     env = FrameStack(env, num_stack=4)
@@ -46,14 +49,12 @@ def main(n_episodes=20, model_name='LinearModel', render=False, colab=False):
     logger = MetricLogger(save_dir)
     for episode in range(n_episodes):
         state = env.reset()
-
+        step = 0
         while True:
+            step += 1
             action = racer.act(state)
 
-            if colab:
-                next_state, reward, done, _, info = env.step(action)
-            else:
-                next_state, reward, done, info = env.step(action)
+            next_state, reward, done, info = env.step(action)
 
             if render:
                 env.render()
@@ -86,4 +87,5 @@ if __name__ == '__main__':
 
     parameters = parser.parse_args()
 
-    main(n_episodes=parameters.n_episodes, render=parameters.render, model_name=parameters.model, colab=parameters.colab)
+    main(n_episodes=parameters.n_episodes, render=parameters.render, model_name=parameters.model,
+         colab=parameters.colab)

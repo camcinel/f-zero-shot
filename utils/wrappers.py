@@ -89,3 +89,25 @@ class Resizer(gym.ObservationWrapper):
         )
         observation = transforms(observation)
         return observation.squeeze(0)
+
+
+class ColabHelperObservation(gym.ObservationWrapper):
+    def __init__(self, env):
+        super().__init__(env)
+
+    def observation(self, observation):
+        if isinstance(observation, tuple):
+            state, info = observation
+            return state
+        else:
+            return observation
+
+
+class ColabHelperStep(gym.Wrapper):
+    def __init__(self, env):
+        super().__init__(env)
+        self.env = env
+
+    def step(self, action):
+        obs, reward, done, trunc, info = self.env.step(action)
+        return obs, reward, done, info
