@@ -8,6 +8,8 @@ from utils.logger import MetricLogger
 import datetime
 from models.linear_model import LinearModel
 from models.convnet import ConvModel
+from pyvirtualdisplay import Display
+import argparse
 
 IMPLEMENTED_MODELS = {
     'LinearModel': LinearModel,
@@ -15,7 +17,11 @@ IMPLEMENTED_MODELS = {
 }
 
 
-def main(n_episodes=20, model_name='LinearModel', render=False):
+def main(n_episodes=20, model_name='LinearModel', render=False, colab=False):
+    if colab:
+        display = Display(visible=0, size=(1400, 900))
+        display.start()
+
     try:
         model = IMPLEMENTED_MODELS[model_name]
     except KeyError:
@@ -44,7 +50,11 @@ def main(n_episodes=20, model_name='LinearModel', render=False):
         while True:
             action = racer.act(state)
 
-            next_state, reward, done, info = env.step(action)
+            if colab:
+                next_state, reward, done, _, info = env.step(action)
+            else:
+                next_state, reward, done, info = env.step(action)
+
             if render:
                 env.render()
 
@@ -66,4 +76,14 @@ def main(n_episodes=20, model_name='LinearModel', render=False):
 
 
 if __name__ == '__main__':
-    main(model_name='ConvModel')
+    parser = argparse.ArgumentParser(description='F-Zero-Shot')
+    parser.add_argument('--n-episodes', type=int, default=20,
+                        help='number of episodes to train for (default 20)')
+    parser.add_argument('--render', action='store_true', help='render the output while training')
+    parser.add_argument('--model', type=str, default='LinearModel',
+                        help='model type to train')
+    parser.add_argument('--colab', action='store_true', help='for training on Google Colab')
+
+    parameters = parser.parse_args()
+
+    main(n_episodes=parameters.n_episodes, render=parameters.render, model_name=parameters.model, colab=parameters.colab)
