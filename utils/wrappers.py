@@ -28,6 +28,7 @@ ACTION_DICT = {
 class Discretizer(gym.ActionWrapper):
     def __init__(self, env, actions_key='STANDARD_ACTIONS'):
         super().__init__(env)
+        actions = ACTION_DICT[actions_key]
 
         buttons = ['B',
                    'Y',
