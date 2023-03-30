@@ -36,7 +36,7 @@ def main(n_episodes=20, model_name='LinearModel', render=False, colab=False):
 
     retro.data.Integrations.add_custom_path(os.path.join(script_dir, 'custom_integrations'))
     env = retro.make('FZero-Snes', state='FZero.MuteCity1.Beginner.RaceStart.state', inttype=retro.data.Integrations.CUSTOM)
-    env = wrap_environment(env, shape=84, n_frames=4, colab=colab)
+    env = wrap_environment(env, shape=84, n_frames=4, actions_key='ONLY_DRIVE', colab=colab)
     state = env.reset()
 
     racer = Racer(state_dim=state.shape, action_dim=env.action_space.n, save_dir=save_dir, net=model)

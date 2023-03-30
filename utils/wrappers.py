@@ -5,27 +5,28 @@ import numpy as np
 from torchvision import transforms as T
 import torch
 
-STANDARD_ACTIONS = [
-    ["B"],  # accelerate
-    ["LEFT"], ["RIGHT"],  # turn
-    ["B", "LEFT"], ["B", "RIGHT"],  # accelerate through turn
-    ["L", "LEFT"], ["R", "RIGHT"],  # drifting
-    ["B", "L", "LEFT"], ["B", "R", "RIGHT"],  # accelerate through drift
-    ["A"],  # boost
-    ["Y"]  # brake
-]
-
-ONLY_DRIVE = [
-    ["B"],  # accelerate
-    ["LEFT"], ["RIGHT"],  # turn
-    ["B", "LEFT"], ["B", "RIGHT"],  # accelerate through turn
-    ["L", "LEFT"], ["R", "RIGHT"],  # drifting
-    ["B", "L", "LEFT"], ["B", "R", "RIGHT"]  # accelerate through drift
-]
+ACTION_DICT = {
+    'STANDARD_ACTIONS': [
+        ["B"],  # accelerate
+        ["LEFT"], ["RIGHT"],  # turn
+        ["B", "LEFT"], ["B", "RIGHT"],  # accelerate through turn
+        ["L", "LEFT"], ["R", "RIGHT"],  # drifting
+        ["B", "L", "LEFT"], ["B", "R", "RIGHT"],  # accelerate through drift
+        ["A"],  # boost
+        ["Y"]  # brake
+    ],
+    'ONLY_DRIVE': [
+        ["B"],  # accelerate
+        ["LEFT"], ["RIGHT"],  # turn
+        ["B", "LEFT"], ["B", "RIGHT"],  # accelerate through turn
+        ["L", "LEFT"], ["R", "RIGHT"],  # drifting
+        ["B", "L", "LEFT"], ["B", "R", "RIGHT"]  # accelerate through drift
+    ]
+}
 
 
 class Discretizer(gym.ActionWrapper):
-    def __init__(self, env, actions=STANDARD_ACTIONS):
+    def __init__(self, env, actions_key='STANDARD_ACTIONS'):
         super().__init__(env)
 
         buttons = ['B',
@@ -122,13 +123,12 @@ class ColabHelperStep(gym.Wrapper):
         return obs, reward, done, info
 
 
-def wrap_environment(env, shape, n_frames, colab=False):
+def wrap_environment(env, shape, n_frames, actions_key='STANDARD_ACTIONS', colab=False):
     if colab:
         env = ColabHelperStep(env)
         env = ColabHelperObservation(env)
-    env = Discretizer(env)
+    env = Discretizer(env, actions_key=actions_key)
     env = GrayScaleObservation(env)
     env = Resizer(env, shape=shape)
     env = FrameStack(env, num_stack=n_frames)
     return env
-
