@@ -14,9 +14,9 @@ def main():
     print(env.action_space.n)
     print(env.action_space)
     current_reward = 0
-    for i in range(1):
+    for i in range(10000):
         sample = env.action_space.sample()
-        observation, reward, done, info = env.step(sample)
+        observation, reward, done, info = env.step(10)
         current_reward += reward
         if done:
             print(f'Total reward earned:\t{current_reward}')

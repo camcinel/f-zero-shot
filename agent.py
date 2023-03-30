@@ -18,9 +18,9 @@ class Racer:
         self.net = self.net.to(self.device)
 
         self.exploration_rate = 1.0
-        self.exploration_rate_decay = 0.999975
-        self.exploration_rate_min = 0.001
-        self.gamma = 0.9
+        self.exploration_rate_decay = 0.99996
+        self.exploration_rate_min = 0.1
+        self.gamma = 0.99
         self.curr_step = 0
 
         self.burnin = 1e4

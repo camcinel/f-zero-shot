@@ -7,6 +7,8 @@ import datetime
 from pathlib import Path
 from agent import Racer
 import torch
+import random
+import numpy as np
 
 IMPLEMENTED_MODELS = {
     'LinearModel': LinearModel,
@@ -40,21 +42,27 @@ def test_model(model_name, saved_model_dict, n_episodes):
 
     with torch.no_grad():
         for episode in range(n_episodes):
+            total_reward = 0
             state = env.reset()
             step = 0
             while True:
                 step += 1
-                action = racer.act(state)
+                if random.random() < 0.02:
+                    action = np.random.randint(11)
+                else:
+                    action = racer.act(state)
 
                 next_state, reward, done, info = env.step(action)
+                total_reward += reward
 
                 env.render()
 
                 state = next_state
 
                 if done:
+                    print(f'Total reward is {total_reward}')
                     break
 
 
 if __name__ == '__main__':
-    test_model('ConvModel', 'trained_models/ConvModel-13hours-3-28/racer_net_2.chkpt', 100)
+    test_model('ConvModel', 'trained_models/ConvModel-4hrs-3-29/racer_net_6.chkpt', 10)
