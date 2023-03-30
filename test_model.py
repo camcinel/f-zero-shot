@@ -1,5 +1,6 @@
 from models.linear_model import LinearModel
 from models.convnet import ConvModel
+from models.convnetnew import ConvModelNew
 import retro
 from utils.wrappers import wrap_environment
 import os
@@ -12,7 +13,8 @@ import numpy as np
 
 IMPLEMENTED_MODELS = {
     'LinearModel': LinearModel,
-    'ConvModel': ConvModel
+    'ConvModel': ConvModel,
+    'ConvModelNew': ConvModelNew
 }
 
 
@@ -29,8 +31,8 @@ def test_model(model_name, saved_model_dict, n_episodes):
     save_dir.mkdir(parents=True, exist_ok=True)
 
     retro.data.Integrations.add_custom_path(os.path.join(script_dir, 'custom_integrations'))
-    env = retro.make('FZero-Snes', state='FZero.KnightCup.Easy.state', inttype=retro.data.Integrations.CUSTOM)
-    env = wrap_environment(env, shape=64, n_frames=4)
+    env = retro.make('FZero-Snes', state='FZero.MuteCity1.Beginner.RaceStart.state', inttype=retro.data.Integrations.CUSTOM)
+    env = wrap_environment(env, shape=84, n_frames=4)
     state = env.reset()
 
     racer = Racer(state_dim=state.shape, action_dim=env.action_space.n, save_dir=save_dir, net=model)
@@ -59,10 +61,13 @@ def test_model(model_name, saved_model_dict, n_episodes):
 
                 state = next_state
 
+                if info['health'] == 0:
+                    print('Lost all health')
+
                 if done:
                     print(f'Total reward is {total_reward}')
                     break
 
 
 if __name__ == '__main__':
-    test_model('ConvModel', 'trained_models/ConvModel-4hrs-3-29/racer_net_6.chkpt', 10)
+    test_model('ConvModel', 'trained_models/ConvModel-13hours-3-29/racer_net_37.chkpt', 10)

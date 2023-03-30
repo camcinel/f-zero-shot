@@ -15,6 +15,14 @@ STANDARD_ACTIONS = [
     ["Y"]  # brake
 ]
 
+ONLY_DRIVE = [
+    ["B"],  # accelerate
+    ["LEFT"], ["RIGHT"],  # turn
+    ["B", "LEFT"], ["B", "RIGHT"],  # accelerate through turn
+    ["L", "LEFT"], ["R", "RIGHT"],  # drifting
+    ["B", "L", "LEFT"], ["B", "R", "RIGHT"]  # accelerate through drift
+]
+
 
 class Discretizer(gym.ActionWrapper):
     def __init__(self, env, actions=STANDARD_ACTIONS):
