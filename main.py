@@ -18,7 +18,7 @@ IMPLEMENTED_MODELS = {
 }
 
 
-def main(n_episodes=20, model_name='LinearModel', render=False, colab=False):
+def main(n_episodes=20, model_name='LinearModel', allowed_actions='STANDARD_ACTIONS', render=False, colab=False):
     if colab:
         display = Display(visible=0, size=(1400, 900))
         display.start()
@@ -36,7 +36,7 @@ def main(n_episodes=20, model_name='LinearModel', render=False, colab=False):
 
     retro.data.Integrations.add_custom_path(os.path.join(script_dir, 'custom_integrations'))
     env = retro.make('FZero-Snes', state='FZero.MuteCity1.Beginner.RaceStart.state', inttype=retro.data.Integrations.CUSTOM)
-    env = wrap_environment(env, shape=84, n_frames=4, actions_key='ONLY_DRIVE', colab=colab)
+    env = wrap_environment(env, shape=84, n_frames=4, actions_key=allowed_actions.upper(), colab=colab)
     state = env.reset()
 
     racer = Racer(state_dim=state.shape, action_dim=env.action_space.n, save_dir=save_dir, net=model)
@@ -79,8 +79,10 @@ if __name__ == '__main__':
     parser.add_argument('--model', type=str, default='LinearModel',
                         help='model type to train')
     parser.add_argument('--colab', action='store_true', help='for training on Google Colab')
+    parser.add_argument('--allowed-actions', type=str, default='standard_actions',
+                        help='decide which actions are allowed (default standard_actions')
 
     parameters = parser.parse_args()
 
     main(n_episodes=parameters.n_episodes, render=parameters.render, model_name=parameters.model,
-         colab=parameters.colab)
+         allowed_actions=parameters.allowed_actions, colab=parameters.colab)
