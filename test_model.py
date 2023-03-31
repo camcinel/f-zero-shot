@@ -10,6 +10,7 @@ from agent import Racer
 import torch
 import random
 import numpy as np
+import time
 
 IMPLEMENTED_MODELS = {
     'LinearModel': LinearModel,
@@ -32,7 +33,7 @@ def test_model(model_name, saved_model_dict, n_episodes):
 
     retro.data.Integrations.add_custom_path(os.path.join(script_dir, 'custom_integrations'))
     env = retro.make('FZero-Snes', state='FZero.MuteCity1.Beginner.RaceStart.state', inttype=retro.data.Integrations.CUSTOM)
-    env = wrap_environment(env, shape=84, n_frames=4)
+    env = wrap_environment(env, shape=128, n_frames=4, actions_key='ONLY_DRIVE')
     state = env.reset()
 
     racer = Racer(state_dim=state.shape, action_dim=env.action_space.n, save_dir=save_dir, net=model)
@@ -41,7 +42,6 @@ def test_model(model_name, saved_model_dict, n_episodes):
     racer.net.load_state_dict(loaded_dict['model'])
     racer.exploration_rate = 0
     racer.exploration_rate_min = 0
-
     with torch.no_grad():
         for episode in range(n_episodes):
             total_reward = 0
@@ -49,14 +49,14 @@ def test_model(model_name, saved_model_dict, n_episodes):
             step = 0
             while True:
                 step += 1
-                if random.random() < 0.02:
-                    action = np.random.randint(11)
+                if random.random() < 0.1:
+                    action = np.random.randint(env.action_space.n)
                 else:
                     action = racer.act(state)
 
                 next_state, reward, done, info = env.step(action)
                 total_reward += reward
-
+                time.sleep(0.000001)
                 env.render()
 
                 state = next_state
@@ -65,9 +65,10 @@ def test_model(model_name, saved_model_dict, n_episodes):
                     print('Lost all health')
 
                 if done:
+                    print(f'Total length is {step}')
                     print(f'Total reward is {total_reward}')
                     break
 
 
 if __name__ == '__main__':
-    test_model('ConvModel', 'trained_models/ConvModel-13hours-3-29/racer_net_37.chkpt', 10)
+    test_model('ConvModelNew', 'trained_models/ConvModelNew/racer_net_3.chkpt', 10)
