@@ -72,6 +72,8 @@ class GrayScaleObservation(gym.ObservationWrapper):
 
     def permute_orientation(self, observation):
         # permute [H, W, C] array to [C, H, W] tensor
+        if isinstance(observation, tuple):
+            observation = observation[0]
         observation = np.transpose(observation, (2, 0, 1))
         observation = torch.tensor(observation.copy(), dtype=torch.float)
         return observation
