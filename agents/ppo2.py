@@ -102,7 +102,7 @@ class PPO2:
                 self.buffer.is_terminals.append(done)
 
                 time_step += 1
-                current_ep_reward += 1
+                current_ep_reward += reward
 
                 if time_step % self.update_timestep == 0:
                     mean_loss = self.update()
@@ -112,6 +112,7 @@ class PPO2:
                     self.save(n_saves)
 
                 if done:
+                    i_episode += 1
                     self.logger.log_episode()
                     self.logger.record(i_episode, time_step, mean_loss)
                     break
