@@ -36,13 +36,14 @@ def main(n_episodes=20, model_name='LinearModel', allowed_actions='STANDARD_ACTI
 
     retro.data.Integrations.add_custom_path(os.path.join(script_dir, 'custom_integrations'))
     env = retro.make('FZero-Snes', state='FZero.MuteCity1.Beginner.RaceStart.state', inttype=retro.data.Integrations.CUSTOM)
-    env = wrap_environment(env, shape=128, n_frames=4, actions_key=allowed_actions.upper(), colab=colab)
+    env = wrap_environment(env, shape=84, n_frames=4, actions_key=allowed_actions.upper(), colab=colab)
     state = env.reset()
 
     racer = Racer(state_dim=state.shape, action_dim=env.action_space.n, save_dir=save_dir, net=model)
 
     logger = MetricLogger(save_dir)
     for episode in range(n_episodes):
+        racer.reset_actions()
         state = env.reset()
         step = 0
         while True:
@@ -63,6 +64,7 @@ def main(n_episodes=20, model_name='LinearModel', allowed_actions='STANDARD_ACTI
             state = next_state
 
             if done:
+                racer.print_actions()
                 break
 
         logger.log_episode()

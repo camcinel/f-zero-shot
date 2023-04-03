@@ -33,7 +33,7 @@ def test_model(model_name, saved_model_dict, n_episodes):
 
     retro.data.Integrations.add_custom_path(os.path.join(script_dir, 'custom_integrations'))
     env = retro.make('FZero-Snes', state='FZero.MuteCity1.Beginner.RaceStart.state', inttype=retro.data.Integrations.CUSTOM)
-    env = wrap_environment(env, shape=128, n_frames=4, actions_key='ONLY_DRIVE')
+    env = wrap_environment(env, shape=64, n_frames=4, actions_key='STANDARD_ACTIONS')
     state = env.reset()
 
     racer = Racer(state_dim=state.shape, action_dim=env.action_space.n, save_dir=save_dir, net=model)
@@ -56,13 +56,10 @@ def test_model(model_name, saved_model_dict, n_episodes):
 
                 next_state, reward, done, info = env.step(action)
                 total_reward += reward
-                time.sleep(0.000001)
+                time.sleep(1e-7)
                 env.render()
 
                 state = next_state
-
-                if info['health'] == 0:
-                    print('Lost all health')
 
                 if done:
                     print(f'Total length is {step}')
@@ -71,4 +68,4 @@ def test_model(model_name, saved_model_dict, n_episodes):
 
 
 if __name__ == '__main__':
-    test_model('ConvModelNew', 'trained_models/ConvModelNew/racer_net_3.chkpt', 10)
+    test_model('ConvModel', 'trained_models/ConvModel-4hrs-3-29/racer_net_1.chkpt', 10)

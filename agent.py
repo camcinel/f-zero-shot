@@ -11,6 +11,7 @@ class Racer:
         self.state_dim = state_dim
         self.action_dim = action_dim
         self.save_dir = save_dir
+        self.actions_done = np.zeros(action_dim, dtype=int)
 
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -43,6 +44,7 @@ class Racer:
             state = torch.tensor(state, device=self.device).unsqueeze(0)
             action_values = self.net(state, model='online')
             action_idx = torch.argmax(action_values, dim=1).item()
+            self.actions_done[action_idx] += 1
 
         self.exploration_rate *= self.exploration_rate_decay
         self.exploration_rate = max(self.exploration_rate_min, self.exploration_rate)
@@ -126,3 +128,9 @@ class Racer:
         loss = self.update_Q_online(td_est, td_tgt)
 
         return td_est.mean().item(), loss
+
+    def reset_actions(self):
+        self.actions_done = np.zeros(self.action_dim, dtype=int)
+
+    def print_actions(self):
+        print(f'Non-random actions done: {self.actions_done}')

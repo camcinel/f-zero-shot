@@ -96,7 +96,7 @@ class Resizer(gym.ObservationWrapper):
 
     def observation(self, observation):
         transforms = T.Compose(
-            [T.Resize(self.shape, antialias=True)]
+            [T.Resize(self.shape, antialias=True), T.Normalize(0, 255)]
         )
         observation = transforms(observation)
         return observation.squeeze(0)
