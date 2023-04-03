@@ -124,12 +124,12 @@ class ColabHelperStep(gym.Wrapper):
         return obs, reward, done, info
 
 
-def wrap_environment(env, shape, n_frames, actions_key='STANDARD_ACTIONS', colab=False):
-    if colab:
-        env = ColabHelperStep(env)
-        env = ColabHelperObservation(env)
+def wrap_environment(env, shape, n_frames, actions_key='STANDARD_ACTIONS'):
     env = Discretizer(env, actions_key=actions_key)
     env = GrayScaleObservation(env)
     env = Resizer(env, shape=shape)
-    env = FrameStack(env, num_stack=n_frames)
+    if gym.__version__ < '0.26':
+        env = FrameStack(env, num_stack=n_frames, new_step_api=True)
+    else:
+        env = FrameStack(env, num_stack=n_frames)
     return env

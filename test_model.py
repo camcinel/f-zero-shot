@@ -33,7 +33,7 @@ def test_model(model_name, saved_model_dict, n_episodes):
 
     retro.data.Integrations.add_custom_path(os.path.join(script_dir, 'custom_integrations'))
     env = retro.make('FZero-Snes', state='FZero.MuteCity1.Beginner.RaceStart.state', inttype=retro.data.Integrations.CUSTOM)
-    env = wrap_environment(env, shape=64, n_frames=4, actions_key='STANDARD_ACTIONS')
+    env = wrap_environment(env, shape=84, n_frames=4, actions_key='ONLY_DRIVE')
     state = env.reset()
 
     racer = Racer(state_dim=state.shape, action_dim=env.action_space.n, save_dir=save_dir, net=model)
@@ -49,15 +49,15 @@ def test_model(model_name, saved_model_dict, n_episodes):
             step = 0
             while True:
                 step += 1
-                if random.random() < 0.1:
-                    action = np.random.randint(env.action_space.n)
-                else:
-                    action = racer.act(state)
+                action = racer.act(state)
 
                 next_state, reward, done, info = env.step(action)
                 total_reward += reward
                 time.sleep(1e-7)
                 env.render()
+
+                if step % 10 == 0:
+                    print(f'Reward so far: {reward}')
 
                 state = next_state
 
@@ -68,4 +68,4 @@ def test_model(model_name, saved_model_dict, n_episodes):
 
 
 if __name__ == '__main__':
-    test_model('ConvModel', 'trained_models/ConvModel-4hrs-3-29/racer_net_1.chkpt', 10)
+    test_model('ConvModelNew', 'trained_models/just_testing/racer_net_1 (1).chkpt', 10)

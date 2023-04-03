@@ -19,7 +19,7 @@ class Racer:
         self.net = self.net.to(self.device)
 
         self.exploration_rate = 1.0
-        self.exploration_rate_decay = 0.9999975
+        self.exploration_rate_decay = 0.99999975
         self.exploration_rate_min = 0.1
         self.gamma = 0.99
         self.curr_step = 0
