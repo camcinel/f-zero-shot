@@ -2,12 +2,13 @@ import retro
 import os
 from utils.wrappers import wrap_environment
 from pathlib import Path
-from agent import Racer
-from utils.logger import MetricLogger
+from agents.dqn import RacerDQN
+from agents.ppo import RacerPPO
+from utils.logger import MetricLoggerDQN
 import datetime
 from models.linear_model import LinearModel
 from models.convnet import ConvModel
-from models.convnetnew import ConvModelNew
+from models.convnetnew import ConvModelNew, ConvNetNew
 from pyvirtualdisplay import Display
 import argparse
 
@@ -17,8 +18,13 @@ IMPLEMENTED_MODELS = {
     'ConvModelNew': ConvModelNew
 }
 
+IMPLEMENTED_ALGOS = {
+    'DQN': RacerDQN,
+    'PPO': RacerPPO
+}
 
-def main(n_episodes=20, model_name='LinearModel', allowed_actions='STANDARD_ACTIONS', render=False, colab=False):
+
+def main(n_episodes=20, model_name='LinearModel', algo_name='PPO', allowed_actions='STANDARD_ACTIONS', colab=False):
     if colab:
         display = Display(visible=0, size=(1400, 900))
         display.start()
@@ -29,8 +35,14 @@ def main(n_episodes=20, model_name='LinearModel', allowed_actions='STANDARD_ACTI
         raise NotImplementedError(f'model_name == {model_name} is not implemented\n'
                                   f'Implemented Models:\t{list(IMPLEMENTED_MODELS.keys())}')
 
+    try:
+        algo = IMPLEMENTED_ALGOS[algo_name]
+    except KeyError:
+        raise NotImplementedError(f'algorithm {algo_name} is not implemented\n'
+                                  f'Implemented Algorithms:\t{list(IMPLEMENTED_ALGOS.keys())}')
+
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    dir_name = f'{model_name}-{datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")}'
+    dir_name = f'{model_name}-{algo_name}-{datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")}'
     save_dir = Path("checkpoints") / dir_name
     save_dir.mkdir(parents=True, exist_ok=True)
 
@@ -39,52 +51,23 @@ def main(n_episodes=20, model_name='LinearModel', allowed_actions='STANDARD_ACTI
     env = wrap_environment(env, shape=84, n_frames=4, actions_key=allowed_actions.upper())
     state = env.reset()
 
-    racer = Racer(state_dim=state.shape, action_dim=env.action_space.n, save_dir=save_dir, net=model)
-
-    logger = MetricLogger(save_dir)
-    for episode in range(n_episodes):
-        racer.reset_actions()
-        state = env.reset()
-        step = 0
-        while True:
-            step += 1
-            action = racer.act(state)
-
-            next_state, reward, done, trunc, info = env.step(action)
-
-            if render:
-                env.render()
-
-            racer.cache(state, next_state, action, reward, done)
-
-            q, loss = racer.learn()
-
-            logger.log_step(reward, loss, q)
-
-            state = next_state
-
-            if done:
-                racer.print_actions()
-                break
-
-        logger.log_episode()
-
-        if episode % 1 == 0:
-            logger.record(episode=episode, epsilon=racer.exploration_rate, step=racer.curr_step)
+    racer = algo(env=env, state_dim=state.shape, action_dim=env.action_space.n, save_dir=save_dir, net=model)
+    racer.train(n_episodes)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='F-Zero-Shot')
     parser.add_argument('--n-episodes', type=int, default=20,
                         help='number of episodes to train for (default 20)')
-    parser.add_argument('--render', action='store_true', help='render the output while training')
     parser.add_argument('--model', type=str, default='LinearModel',
                         help='model type to train')
+    parser.add_argument('--algo', type=str, default='PPO',
+                        help='reinforcement learning algorithm to use')
     parser.add_argument('--colab', action='store_true', help='for training on Google Colab')
     parser.add_argument('--allowed-actions', type=str, default='standard_actions',
                         help='decide which actions are allowed (default standard_actions')
 
     parameters = parser.parse_args()
 
-    main(n_episodes=parameters.n_episodes, render=parameters.render, model_name=parameters.model,
+    main(n_episodes=parameters.n_episodes, model_name=parameters.model, algo_name=parameters.algo,
          allowed_actions=parameters.allowed_actions, colab=parameters.colab)

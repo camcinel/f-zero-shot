@@ -4,10 +4,12 @@ import torch.nn as nn
 import numpy as np
 from collections import deque
 import random
+from utils.logger import MetricLoggerDQN
 
 
-class Racer:
-    def __init__(self, state_dim, action_dim, save_dir, net):
+class RacerDQN:
+    def __init__(self, env, state_dim, action_dim, save_dir, net):
+        self.env = env
         self.state_dim = state_dim
         self.action_dim = action_dim
         self.save_dir = save_dir
@@ -28,6 +30,7 @@ class Racer:
         self.learn_every = 3
         self.sync_every = 1e4
         self.save_every = 5e4
+        self.logger = MetricLoggerDQN(save_dir)
 
         self.memory = deque(maxlen=25000)
         self.batch_size = 128
@@ -98,7 +101,7 @@ class Racer:
 
     def save(self):
         save_path = (
-            self.save_dir / f'racer_net_{int(self.curr_step // self.save_every)}.chkpt'
+            self.save_dir / f'racerDQN_net_{int(self.curr_step // self.save_every)}.chkpt'
         )
         torch.save(
             dict(model=self.net.state_dict(), exploration_rate=self.exploration_rate),
@@ -134,3 +137,29 @@ class Racer:
 
     def print_actions(self):
         print(f'Non-random actions done: {self.actions_done}')
+
+    def train(self, n_episodes):
+        for episode in range(n_episodes):
+            self.reset_actions()
+            state = self.env.reset()
+            while True:
+                action = self.act(state)
+
+                next_state, reward, done, trunc, info = self.env.step(action)
+
+                self.cache(state, next_state, action, reward, done)
+
+                q, loss = self.learn()
+
+                self.logger.log_step(reward, loss, q)
+
+                state = next_state
+
+                if done:
+                    self.print_actions()
+                    break
+
+            self.logger.log_episode()
+
+            if episode % 1 == 0:
+                self.logger.record(episode=episode, epsilon=self.exploration_rate, step=self.curr_step)

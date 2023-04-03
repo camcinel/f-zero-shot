@@ -6,11 +6,8 @@ from utils.wrappers import wrap_environment
 import os
 import datetime
 from pathlib import Path
-from agent import Racer
+from agents.dqn import RacerDQN
 import torch
-import random
-import numpy as np
-import time
 
 IMPLEMENTED_MODELS = {
     'LinearModel': LinearModel,
@@ -36,36 +33,34 @@ def test_model(model_name, saved_model_dict, n_episodes):
     env = wrap_environment(env, shape=84, n_frames=4, actions_key='ONLY_DRIVE')
     state = env.reset()
 
-    racer = Racer(state_dim=state.shape, action_dim=env.action_space.n, save_dir=save_dir, net=model)
+    racer = RacerDQN(state_dim=state.shape, action_dim=env.action_space.n, save_dir=save_dir, net=model)
 
     loaded_dict = torch.load(saved_model_dict, map_location=torch.device('cpu'))
     racer.net.load_state_dict(loaded_dict['model'])
-    racer.exploration_rate = 0
-    racer.exploration_rate_min = 0
+    racer.exploration_rate = 0.2
+    racer.exploration_rate_min = 0.2
     with torch.no_grad():
-        for episode in range(n_episodes):
-            total_reward = 0
-            state = env.reset()
-            step = 0
-            while True:
-                step += 1
-                action = racer.act(state)
+        env.record_movie('output.bk2')
+        total_reward = 0
+        racer.reset_actions()
+        state = env.reset()
+        step = 0
+        while True:
+            step += 1
+            action = racer.act(state)
 
-                next_state, reward, done, info = env.step(action)
-                total_reward += reward
-                time.sleep(1e-7)
-                env.render()
+            next_state, reward, done, trunc, info = env.step(action)
+            total_reward += reward
 
-                if step % 10 == 0:
-                    print(f'Reward so far: {reward}')
+            state = next_state
 
-                state = next_state
-
-                if done:
-                    print(f'Total length is {step}')
-                    print(f'Total reward is {total_reward}')
-                    break
+            if done:
+                racer.print_actions()
+                print(f'Total length is {step}')
+                print(f'Total reward is {total_reward}')
+                env.stop_record()
+                break
 
 
 if __name__ == '__main__':
-    test_model('ConvModelNew', 'trained_models/just_testing/racer_net_1 (1).chkpt', 10)
+    test_model('ConvModelNew', 'trained_models/without_special_wrappers/racer_net_32.chkpt', 10)

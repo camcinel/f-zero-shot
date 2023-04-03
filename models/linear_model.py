@@ -21,7 +21,7 @@ class LinearModel(nn.Module):
         for param in self.target.parameters():
             param.requires_grad = False
 
-    def forward(self, x, model):
+    def forward(self, x, model='online'):
         batch_size = x.size(0)
         x = x.view(batch_size, -1)
         if model == "online":

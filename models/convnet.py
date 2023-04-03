@@ -45,7 +45,7 @@ class ConvModel(nn.Module):
         for param in self.target.parameters():
             param.requires_grad = False
 
-    def forward(self, x, model):
+    def forward(self, x, model='online'):
         if model == "online":
             return self.online(x)
         elif model == 'target':
