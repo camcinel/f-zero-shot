@@ -4,6 +4,7 @@ from utils.wrappers import wrap_environment
 from pathlib import Path
 from agents.dqn import RacerDQN
 from agents.ppo import RacerPPO
+from agents.ppo2 import PPO2
 from utils.logger import MetricLoggerDQN
 import datetime
 from models.linear_model import LinearModel
@@ -20,7 +21,8 @@ IMPLEMENTED_MODELS = {
 
 IMPLEMENTED_ALGOS = {
     'DQN': RacerDQN,
-    'PPO': RacerPPO
+    'PPO': RacerPPO,
+    'PPO2': PPO2
 }
 
 
@@ -57,11 +59,11 @@ def main(n_episodes=20, model_name='LinearModel', algo_name='PPO', allowed_actio
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='F-Zero-Shot')
-    parser.add_argument('--n-episodes', type=int, default=20,
+    parser.add_argument('--n-episodes', type=int, default=20000,
                         help='number of episodes to train for (default 20)')
     parser.add_argument('--model', type=str, default='LinearModel',
                         help='model type to train')
-    parser.add_argument('--algo', type=str, default='PPO',
+    parser.add_argument('--algo', type=str, default='PPO2',
                         help='reinforcement learning algorithm to use')
     parser.add_argument('--colab', action='store_true', help='for training on Google Colab')
     parser.add_argument('--allowed-actions', type=str, default='standard_actions',

@@ -7,6 +7,7 @@ import os
 import datetime
 from pathlib import Path
 from agents.dqn import RacerDQN
+from agents.ppo import RacerPPO
 import torch
 
 IMPLEMENTED_MODELS = {
@@ -33,34 +34,36 @@ def test_model(model_name, saved_model_dict, n_episodes):
     env = wrap_environment(env, shape=84, n_frames=4, actions_key='ONLY_DRIVE')
     state = env.reset()
 
-    racer = RacerDQN(state_dim=state.shape, action_dim=env.action_space.n, save_dir=save_dir, net=model)
+    racer = RacerPPO(env=env, state_dim=state.shape, action_dim=env.action_space.n, save_dir=save_dir, net=model)
 
     loaded_dict = torch.load(saved_model_dict, map_location=torch.device('cpu'))
-    racer.net.load_state_dict(loaded_dict['model'])
-    racer.exploration_rate = 0.2
-    racer.exploration_rate_min = 0.2
-    with torch.no_grad():
-        env.record_movie('output.bk2')
-        total_reward = 0
-        racer.reset_actions()
-        state = env.reset()
-        step = 0
-        while True:
-            step += 1
-            action = racer.act(state)
+    racer.actor.load_state_dict(loaded_dict['actor'])
+    best_reward = 0
+    for i in range(n_episodes):
+        with torch.no_grad():
+            env.record_movie(f'output_{i}.bk2')
+            total_reward = 0
+            state = env.reset()
+            step = 0
+            while True:
+                step += 1
+                action = racer.act(state)
 
-            next_state, reward, done, trunc, info = env.step(action)
-            total_reward += reward
+                next_state, reward, done, trunc, info = env.step(action)
+                total_reward += reward
 
-            state = next_state
+                state = next_state
 
-            if done:
-                racer.print_actions()
-                print(f'Total length is {step}')
-                print(f'Total reward is {total_reward}')
-                env.stop_record()
-                break
+                if done:
+                    if total_reward > best_reward:
+                        best_run = i
+                        best_reward = total_reward
+                    print(f'Total length is {step}')
+                    print(f'Total reward is {total_reward}')
+                    env.stop_record()
+                    break
+    print(f'Best run is output_{best_run}.bk2')
 
 
 if __name__ == '__main__':
-    test_model('ConvModelNew', 'trained_models/without_special_wrappers/racer_net_32.chkpt', 10)
+    test_model('ConvModelNew', 'trained_models/ppo/racerDQN_net_3.chkpt', 10)

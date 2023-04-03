@@ -147,7 +147,7 @@ class RacerPPO:
 
     def save(self, iteration):
         save_path = (
-                self.save_dir / f'racerDQN_net_{int(iteration // self.save_every)}.chkpt'
+                self.save_dir / f'racerPPO_net_{int(iteration // self.save_every)}.chkpt'
         )
         torch.save(
             dict(actor=self.actor.state_dict(), critic=self.critic.state_dict()),
