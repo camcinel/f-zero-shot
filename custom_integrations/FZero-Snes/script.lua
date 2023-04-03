@@ -4,9 +4,8 @@ function get_checkpoint()
     local lap_size = data.lap_size
     if lap == 255 then
         lap = -1
-    else
-        return checkpoint + lap * lap_size
     end
+    return checkpoint + lap * lap_size
 end
 
 data.prev_checkpoint = get_checkpoint()
