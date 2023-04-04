@@ -8,6 +8,7 @@ import datetime
 from pathlib import Path
 from agents.dqn import RacerDQN
 from agents.ppo import RacerPPO
+from agents.ppo2 import PPO2
 import torch
 
 IMPLEMENTED_MODELS = {
@@ -18,6 +19,7 @@ IMPLEMENTED_MODELS = {
 
 
 def test_model(model_name, saved_model_dict, n_episodes):
+    # TODO make this function work for any model
     try:
         model = IMPLEMENTED_MODELS[model_name]
     except KeyError:
@@ -34,10 +36,9 @@ def test_model(model_name, saved_model_dict, n_episodes):
     env = wrap_environment(env, shape=84, n_frames=4, actions_key='ONLY_DRIVE')
     state = env.reset()
 
-    racer = RacerPPO(env=env, state_dim=state.shape, action_dim=env.action_space.n, save_dir=save_dir, net=model)
+    racer = PPO2(env=env, state_dim=state.shape, action_dim=env.action_space.n, save_dir=save_dir, net=model)
 
-    loaded_dict = torch.load(saved_model_dict, map_location=torch.device('cpu'))
-    racer.actor.load_state_dict(loaded_dict['actor'])
+    racer.load(saved_model_dict)
     best_reward = 0
     for i in range(n_episodes):
         with torch.no_grad():
@@ -47,7 +48,7 @@ def test_model(model_name, saved_model_dict, n_episodes):
             step = 0
             while True:
                 step += 1
-                action = racer.act(state)
+                action = racer.select_action(state)
 
                 next_state, reward, done, trunc, info = env.step(action)
                 total_reward += reward
@@ -66,4 +67,4 @@ def test_model(model_name, saved_model_dict, n_episodes):
 
 
 if __name__ == '__main__':
-    test_model('ConvModelNew', 'trained_models/ppo/racerDQN_net_3.chkpt', 10)
+    test_model('ConvModelNew', 'trained_models/slower_ppo2/racerPPO2_net_1.chkpt', 10)

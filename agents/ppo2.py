@@ -54,7 +54,7 @@ class ActorCritic(nn.Module):
 
 
 class PPO2:
-    def __init__(self, env, state_dim, action_dim, net, save_dir, K_epochs=80):
+    def __init__(self, env, state_dim, action_dim, net, save_dir, K_epochs=40):
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.env = env
         self.save_dir = save_dir
@@ -66,10 +66,10 @@ class PPO2:
         self.eps = 1e-10
         self.K_epochs = K_epochs
         self.max_timesteps_per_episode = 10000
-        self.update_timestep = self.max_timesteps_per_episode * 5
+        self.update_timestep = self.max_timesteps_per_episode
 
-        lr_actor = 0.0003
-        lr_critic = 0.001
+        lr_actor = 0.00005
+        lr_critic = 0.0005
 
         self.buffer = RolloutBuffer()
 
