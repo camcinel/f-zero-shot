@@ -8,7 +8,7 @@ import datetime
 from pathlib import Path
 from agents.dqn import RacerDQN
 from agents.ppo import RacerPPO
-from agents.ppo2 import PPO2
+from agents.ppo2 import PPO2, PPO2MultipleStates
 import torch
 import time
 import numpy as np
@@ -39,23 +39,32 @@ def test_model(model_name, saved_model_dict, n_episodes):
     env = wrap_environment(env, shape=84, n_frames=4, actions_key='ONLY_DRIVE')
     state = env.reset()
 
-    racer = PPO2(env=env, state_dim=state.shape, action_dim=env.action_space.n, save_dir=save_dir, net=model)
-
+    available_states = [
+        'FZero.MuteCity1.Beginner.RaceStart.state',
+        'FZero.BigBlue1.Beginner.RaceStart.state',
+        'FZero.SandOcean.Beginner.RaceStart.state',
+        'FZero.DeathWind.Beginner.RaceStart.state',
+        'FZero.Silence.Beginner.RaceStart.state',
+        'FZero.MuteCity2.Beginner.RaceStart.state'
+    ]
+    racer = PPO2MultipleStates(init_env=env, state_list=available_states, state_dim=state.shape, action_dim=env.action_space.n, actions_key='ONLY_DRIVE', save_dir=save_dir, net=model)
+    env.close()
     racer.load(saved_model_dict)
     best_reward = 0
-    for i in range(n_episodes):
+    for state in available_states:
+        state_name = state.split('.')[1]
+        print(f'Running state {state_name}')
         with torch.no_grad():
-            env.record_movie(f'output_{i}.bk2')
+            env = retro.make('FZero-Snes', state=state, inttype=retro.data.Integrations.CUSTOM)
+            env = wrap_environment(env, shape=84, n_frames=4, actions_key='ONLY_DRIVE')
+            env.record_movie(f'output_{state_name}.bk2')
             total_reward = 0
             state = env.reset()
             step = 0
             start_time = time.time()
             while True:
                 step += 1
-                if i < n_episodes-1:
-                    action = racer.select_action(state)
-                else:
-                    action = racer.select_action_best(state)
+                action = racer.select_action_best(state)
 
                 next_state, reward, done, trunc, info = env.step(action)
                 total_reward += reward
@@ -64,7 +73,7 @@ def test_model(model_name, saved_model_dict, n_episodes):
 
                 if done:
                     if total_reward > best_reward:
-                        best_run = i
+                        best_run = state_name
                         best_reward = total_reward
                     end_time = time.time()
                     total_time = np.round(end_time - start_time, 3)
@@ -72,11 +81,12 @@ def test_model(model_name, saved_model_dict, n_episodes):
                     print(f'Total length is {step}')
                     print(f'Total reward is {total_reward}')
                     env.stop_record()
+                    env.close()
                     break
 
                 if step > 25000:
                     if total_reward > best_reward:
-                        best_run = i
+                        best_run = state_name
                         best_reward = total_reward
                     end_time = time.time()
                     total_time = np.round(end_time - start_time, 3)
@@ -85,9 +95,10 @@ def test_model(model_name, saved_model_dict, n_episodes):
                     print(f'Total length is {step}')
                     print(f'Total reward is {total_reward}')
                     env.stop_record()
+                    env.close()
                     break
     print(f'Best run is output_{best_run}.bk2')
 
 
 if __name__ == '__main__':
-    test_model('ConvModelNew', 'trained_models/no_checkpoints_ppo2/racerPPO2_net_21.chkpt', 1)
+    test_model('ConvModelNew', 'trained_models/multistateppo2/racerPPO2_net_8.chkpt', 6)

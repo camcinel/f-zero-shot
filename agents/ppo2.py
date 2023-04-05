@@ -206,9 +206,9 @@ class PPO2:
 class PPO2MultipleStates(PPO2):
     def __init__(self, init_env, state_list, state_dim, action_dim, net, save_dir, actions_key, K_epochs=40):
         super().__init__(init_env, state_dim, action_dim, net, save_dir, K_epochs=K_epochs)
-        self.switch_every = 5
+        self.switch_every = 1
         self.state_cycle = cycle(state_list)
-        self.n_updates = 0
+        self.n_episodes_for_switch = 0
 
         self.shape = state_dim[1:]
         self.n_frames = state_dim[0]
@@ -220,10 +220,6 @@ class PPO2MultipleStates(PPO2):
         n_saves = 0
         mean_loss = 0
         while time_step <= max_timesteps:
-            if self.n_updates == self.switch_every:
-                self.swap_environments()
-                self.n_updates = 0
-
             state = self.env.reset()
             current_ep_reward = 0
 
@@ -240,7 +236,6 @@ class PPO2MultipleStates(PPO2):
 
                 if time_step % self.update_timestep == 0:
                     mean_loss = self.update()
-                    self.n_updates += 1
 
                 if time_step % self.save_every == 0:
                     n_saves += 1
@@ -250,11 +245,13 @@ class PPO2MultipleStates(PPO2):
                     i_episode += 1
                     self.logger.log_episode()
                     self.logger.record(i_episode, time_step, mean_loss)
+                    self.swap_environments()
                     break
 
-    def swap_environments(self):
+    def swap_environments(self, verbose=False):
         self.env.close()
         next_state = next(self.state_cycle)
         self.env = retro.make('FZero-Snes', state=next_state, inttype=retro.data.Integrations.CUSTOM)
         self.env = wrap_environment(self.env, shape=self.shape, n_frames=self.n_frames, actions_key=self.actions_key)
-        print(f'Swapped States To {next_state}')
+        if verbose:
+            print(f'Swapped States To {next_state}')

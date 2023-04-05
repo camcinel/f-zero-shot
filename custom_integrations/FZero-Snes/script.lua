@@ -57,5 +57,5 @@ function power_left_with_direction()
 end
 
 function total_reward()
-    return checkpoint_reward() + 0.1 * speed_with_direction() + 0.01 * power_left_with_direction()
+    return speed_with_direction() + 0.1 * power_left_with_direction()
 end

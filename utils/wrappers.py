@@ -27,7 +27,7 @@ ACTION_DICT = {
 
 class Discretizer(gym.ActionWrapper):
     def __init__(self, env, actions_key='STANDARD_ACTIONS'):
-        super().__init__(env)
+        super().__init__(env, new_step_api=True)
         actions = ACTION_DICT[actions_key]
 
         buttons = ['B',
@@ -66,7 +66,7 @@ class PermuteToTensor(gym.ObservationWrapper):
 
 class GrayScaleObservation(gym.ObservationWrapper):
     def __init__(self, env):
-        super().__init__(env)
+        super().__init__(env, new_step_api=True)
         obs_shape = self.observation_space.shape[:2]
         self.observation_space = Box(low=0, high=255, shape=obs_shape, dtype=np.uint8)
 
@@ -87,7 +87,7 @@ class GrayScaleObservation(gym.ObservationWrapper):
 
 class Resizer(gym.ObservationWrapper):
     def __init__(self, env, shape):
-        super().__init__(env)
+        super().__init__(env, new_step_api=True)
         if isinstance(shape, int):
             self.shape = (shape, shape)
         else:
