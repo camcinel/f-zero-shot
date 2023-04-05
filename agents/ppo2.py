@@ -3,7 +3,15 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.distributions import Categorical
 from utils.logger import MetricLoggerPPO
+from utils.wrappers import wrap_environment
 import numpy as np
+from itertools import cycle
+import retro
+import os
+
+
+SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+retro.data.Integrations.add_custom_path(os.path.join(SCRIPT_DIR, 'custom_integrations'))
 
 
 class RolloutBuffer:
@@ -42,6 +50,10 @@ class ActorCritic(nn.Module):
         state_val = self.critic(state)
 
         return action.detach(), action_logprob.detach(), state_val.detach()
+
+    def act_best(self, state):
+        action = torch.argmax(self.actor(state))
+        return action.detach()
 
     def evaluate(self, state, action):
         action_probs = self.softmax(self.actor(state))
@@ -117,6 +129,14 @@ class PPO2:
                     self.logger.record(i_episode, time_step, mean_loss)
                     break
 
+    def select_action_best(self, state):
+        with torch.no_grad():
+            state = state.__array__()
+            state = torch.tensor(state, dtype=torch.float, device=self.device).unsqueeze(0)
+            action = self.policy_old.act_best(state)
+
+        return action.item()
+
     def select_action(self, state):
         with torch.no_grad():
             state = state.__array__()
@@ -131,6 +151,7 @@ class PPO2:
         return action.item()
 
     def update(self):
+        print('Updating Policy')
         rewards = []
         discounted_reward = 0
         for reward, is_terminal in zip(reversed(self.buffer.rewards), reversed(self.buffer.is_terminals)):
@@ -180,3 +201,60 @@ class PPO2:
     def load(self, checkpoint_path):
         self.policy_old.load_state_dict(torch.load(checkpoint_path, map_location=lambda storage, loc: storage))
         self.policy.load_state_dict(torch.load(checkpoint_path, map_location=lambda storage, loc: storage))
+
+
+class PPO2MultipleStates(PPO2):
+    def __init__(self, init_env, state_list, state_dim, action_dim, net, save_dir, actions_key, K_epochs=40):
+        super().__init__(init_env, state_dim, action_dim, net, save_dir, K_epochs=K_epochs)
+        self.switch_every = 5
+        self.state_cycle = cycle(state_list)
+        self.n_updates = 0
+
+        self.shape = state_dim[1:]
+        self.n_frames = state_dim[0]
+        self.actions_key = actions_key
+
+    def train(self, max_timesteps):
+        time_step = 0
+        i_episode = 0
+        n_saves = 0
+        mean_loss = 0
+        while time_step <= max_timesteps:
+            if self.n_updates == self.switch_every:
+                self.swap_environments()
+                self.n_updates = 0
+
+            state = self.env.reset()
+            current_ep_reward = 0
+
+            for t in range(1, self.max_timesteps_per_episode + 1):
+                action = self.select_action(state)
+                state, reward, done, _, _ = self.env.step(action)
+                self.logger.log_step(reward)
+
+                self.buffer.rewards.append(reward)
+                self.buffer.is_terminals.append(done)
+
+                time_step += 1
+                current_ep_reward += reward
+
+                if time_step % self.update_timestep == 0:
+                    mean_loss = self.update()
+                    self.n_updates += 1
+
+                if time_step % self.save_every == 0:
+                    n_saves += 1
+                    self.save(n_saves)
+
+                if done:
+                    i_episode += 1
+                    self.logger.log_episode()
+                    self.logger.record(i_episode, time_step, mean_loss)
+                    break
+
+    def swap_environments(self):
+        self.env.close()
+        next_state = next(self.state_cycle)
+        self.env = retro.make('FZero-Snes', state=next_state, inttype=retro.data.Integrations.CUSTOM)
+        self.env = wrap_environment(self.env, shape=self.shape, n_frames=self.n_frames, actions_key=self.actions_key)
+        print(f'Swapped States To {next_state}')

@@ -4,7 +4,7 @@ from utils.wrappers import wrap_environment
 from pathlib import Path
 from agents.dqn import RacerDQN
 from agents.ppo import RacerPPO
-from agents.ppo2 import PPO2
+from agents.ppo2 import PPO2, PPO2MultipleStates
 from utils.logger import MetricLoggerDQN
 import datetime
 from models.linear_model import LinearModel
@@ -22,7 +22,8 @@ IMPLEMENTED_MODELS = {
 IMPLEMENTED_ALGOS = {
     'DQN': RacerDQN,
     'PPO': RacerPPO,
-    'PPO2': PPO2
+    'PPO2': PPO2,
+    'PPO2MultipleStates': PPO2MultipleStates
 }
 
 
@@ -53,17 +54,28 @@ def main(n_episodes=20, model_name='LinearModel', algo_name='PPO', allowed_actio
     env = wrap_environment(env, shape=84, n_frames=4, actions_key=allowed_actions.upper())
     state = env.reset()
 
-    racer = algo(env=env, state_dim=state.shape, action_dim=env.action_space.n, save_dir=save_dir, net=model)
+    if algo_name != 'PPO2MultipleStates':
+        racer = algo(env=env, state_dim=state.shape, action_dim=env.action_space.n, save_dir=save_dir, net=model)
+    else:
+        available_states = [
+            'FZero.MuteCity1.Beginner.RaceStart.state',
+            'FZero.BigBlue1.Beginner.RaceStart.state',
+            'FZero.SandOcean.Beginner.RaceStart.state',
+            'FZero.DeathWind.Beginner.RaceStart.state',
+            'FZero.Silence.Beginner.RaceStart.state'
+        ]
+        racer = PPO2MultipleStates(init_env=env, state_list=available_states, state_dim=state.shape, action_dim=env.action_space.n,
+                                   save_dir=save_dir, net=model, actions_key=allowed_actions.upper())
     racer.train(n_episodes)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='F-Zero-Shot')
-    parser.add_argument('--n-episodes', type=int, default=20000,
+    parser.add_argument('--n-episodes', type=int, default=200000,
                         help='number of episodes to train for (default 20)')
     parser.add_argument('--model', type=str, default='LinearModel',
                         help='model type to train')
-    parser.add_argument('--algo', type=str, default='PPO2',
+    parser.add_argument('--algo', type=str, default='PPO2MultipleStates',
                         help='reinforcement learning algorithm to use')
     parser.add_argument('--colab', action='store_true', help='for training on Google Colab')
     parser.add_argument('--allowed-actions', type=str, default='standard_actions',
