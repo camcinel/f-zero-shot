@@ -57,5 +57,5 @@ function power_left_with_direction()
 end
 
 function total_reward()
-    return speed_with_direction() + 0.1 * power_left_with_direction()
+    return speed_with_direction() + 0.1 * health_change()
 end
