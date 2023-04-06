@@ -8,6 +8,7 @@ import numpy as np
 from itertools import cycle
 import retro
 import os
+import random
 
 
 SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -124,10 +125,10 @@ class PPO2:
                     self.save(n_saves)
 
                 if done:
-                    i_episode += 1
-                    self.logger.log_episode()
-                    self.logger.record(i_episode, time_step, mean_loss)
                     break
+            i_episode += 1
+            self.logger.log_episode()
+            self.logger.record(i_episode, time_step, mean_loss)
 
     def select_action_best(self, state):
         with torch.no_grad():
@@ -243,15 +244,15 @@ class PPO2MultipleStates(PPO2):
                     self.save(n_saves)
 
                 if done:
-                    i_episode += 1
-                    self.logger.log_episode()
-                    self.logger.record(i_episode, time_step, mean_loss)
-                    self.swap_environments()
                     break
+            i_episode += 1
+            self.logger.log_episode()
+            self.logger.record(i_episode, time_step, mean_loss)
+            self.swap_environments()
 
-    def swap_environments(self, random=True, verbose=False):
+    def swap_environments(self, random_select=True, verbose=False):
         self.env.close()
-        if random:
+        if random_select:
             next_state = random.choice(self.state_list)
         else:
             next_state = next(self.state_cycle)

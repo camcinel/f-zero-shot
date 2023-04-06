@@ -101,4 +101,4 @@ def test_model(model_name, saved_model_dict, n_episodes):
 
 
 if __name__ == '__main__':
-    test_model('ConvModelNew', 'trained_models/multistate_ppo2_onlyspeed/racerPPO2_net_2.chkpt', 6)
+    test_model('ConvModelNew', 'trained_models/multistate_ppo2_onlyspeed/racerPPO2_net_15.chkpt', 6)
