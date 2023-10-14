@@ -9,4 +9,4 @@
 - `main.py`: main driver script
 
 ## Video
-[![Video](https://img.youtube.com/vi/nSkfWZh4KmI/maxresdefault.jpg)](https://www.youtube.com/watch?v=nSkfWZh4KmI)
+[![Video](https://img.youtube.com/vi/nSkfWZh4KmI/0.jpg)](https://www.youtube.com/watch?v=nSkfWZh4KmI)
